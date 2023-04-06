@@ -14,33 +14,26 @@ Co-authored-by: Isham Araia <ishamaraia@gmail.com>
  1 file changed, 10 insertions(+)
 
 diff --git a/server/container_create_linux.go b/server/container_create_linux.go
-index dc1fa9206..97ec470c5 100644
+index 95618c9c5..c153e57eb 100644
 --- a/server/container_create_linux.go
 +++ b/server/container_create_linux.go
-@@ -36,6 +36,7 @@ import (
- 	"github.com/pkg/errors"
- 	"github.com/sirupsen/logrus"
- 	"golang.org/x/net/context"
-+	"golang.org/x/sys/unix"
- 
- 	"github.com/intel/goresctrl/pkg/blockio"
- )
-@@ -69,6 +70,15 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
- 		}
- 	}
- 	for ; path != "/"; path = filepath.Dir(path) {
+@@ -66,7 +66,16 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
+  }
+  }
+  for ; path != "/"; path = filepath.Dir(path) {
+- var st unix.Stat_t
 +
-+		var fsinfo unix.Statfs_t
-+		err := unix.Statfs(path, &fsinfo)
-+		// Skip chmod for NFS mounts, as even root may not have permission on them.
-+		// Ignore error, to avoid duplicating the stat logic below.
-+		if err == nil && fsinfo.Type == unix.NFS_SUPER_MAGIC {
-+			continue
-+		}
++ var fsinfo unix.Statfs_t
++ err := unix.Statfs(path, &fsinfo)
++ // Skip chmod for NFS mounts, as even root may not have permission on them.
++ // Ignore error, to avoid duplicating the stat logic below.
++ if err == nil && fsinfo.Type == unix.NFS_SUPER_MAGIC {
++ continue
++ }
 +
- 		st, err := os.Stat(path)
- 		if err != nil {
- 			if os.IsNotExist(err) {
--- 
++ var st unix.Stat_t
+  err := unix.Stat(path, &st)
+  if err != nil {
+  if os.IsNotExist(err) {
+--
 2.36.2
-

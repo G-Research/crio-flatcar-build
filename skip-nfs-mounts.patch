@@ -1,19 +1,18 @@
 diff --git a/server/container_create_linux.go b/server/container_create_linux.go
-index 116e6b20e..cb004bcaa 100644
+index 116e6b20e..b66509875 100644
 --- a/server/container_create_linux.go
 +++ b/server/container_create_linux.go
-@@ -68,6 +68,14 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
-                }
-        }
-        for ; path != "/"; path = filepath.Dir(path) {
-+
-+               var fsinfo unix.Statfs_t
-+               err := unix.Statfs(path, &fsinfo)
-+               // Skip chmod for NFS mounts, as even root may not have permission on them.
-+               // Ignore error, to avoid duplicating the stat logic below.
-+               if err == nil && fsinfo.Type == unix.NFS_SUPER_MAGIC {
-+                       continue
-+               }
-                var st unix.Stat_t
-                err := unix.Stat(path, &st)
-                if err != nil {
+@@ -68,6 +68,13 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
+ 		}
+ 	}
+ 	for ; path != "/"; path = filepath.Dir(path) {
++		var fsinfo unix.Statfs_t
++		err := unix.Statfs(path, &fsinfo)
++		// Skip chmod for NFS mounts, as even root may not have permission on them.
++		// Ignore error, to avoid duplicating the stat logic below.
++		if err == nil && fsinfo.Type == unix.NFS_SUPER_MAGIC {
++			continue
++		}
+ 		var st unix.Stat_t
+ 		err := unix.Stat(path, &st)
+ 		if err != nil {

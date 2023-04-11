@@ -10,30 +10,21 @@ permissions.
 
 Co-authored-by: Isham Araia <ishamaraia@gmail.com>
 ---
- server/container_create_linux.go | 10 ++++++++++
- 1 file changed, 10 insertions(+)
-
 diff --git a/server/container_create_linux.go b/server/container_create_linux.go
-index 95618c9c5..c153e57eb 100644
+index 116e6b20e..b66509875 100644
 --- a/server/container_create_linux.go
 +++ b/server/container_create_linux.go
-@@ -66,7 +66,16 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
-  }
-  }
-  for ; path != "/"; path = filepath.Dir(path) {
-- var st unix.Stat_t
-+
-+ var fsinfo unix.Statfs_t
-+ err := unix.Statfs(path, &fsinfo)
-+ // Skip chmod for NFS mounts, as even root may not have permission on them.
-+ // Ignore error, to avoid duplicating the stat logic below.
-+ if err == nil && fsinfo.Type == unix.NFS_SUPER_MAGIC {
-+ continue
-+ }
-+
-+ var st unix.Stat_t
-  err := unix.Stat(path, &st)
-  if err != nil {
-  if os.IsNotExist(err) {
---
-2.36.2
+@@ -68,6 +68,13 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
+ 		}
+ 	}
+ 	for ; path != "/"; path = filepath.Dir(path) {
++		var fsinfo unix.Statfs_t
++		err := unix.Statfs(path, &fsinfo)
++		// Skip chmod for NFS mounts, as even root may not have permission on them.
++		// Ignore error, to avoid duplicating the stat logic below.
++		if err == nil && fsinfo.Type == unix.NFS_SUPER_MAGIC {
++			continue
++		}
+ 		var st unix.Stat_t
+ 		err := unix.Stat(path, &st)
+ 		if err != nil {

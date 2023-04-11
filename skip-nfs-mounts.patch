@@ -1,3 +1,15 @@
+From 79e698ec72dcae5a21c5a688b3d639bd59cf542a Mon Sep 17 00:00:00 2001
+From: David Leadbeater <dgl@dgl.cx>
+Date: Fri, 18 Nov 2022 16:28:41 +1100
+Subject: [PATCH] Skip NFS mounts when fixing permissions for user namespaces
+
+It's possible an NFS mount may not grant root permission to see it, but
+the user is able to see it. In general the NFS mount will be setup
+correctly beforehand, so there's little value in trying to fix
+permissions.
+
+Co-authored-by: Isham Araia <ishamaraia@gmail.com>
+---
 diff --git a/server/container_create_linux.go b/server/container_create_linux.go
 index 116e6b20e..b66509875 100644
 --- a/server/container_create_linux.go

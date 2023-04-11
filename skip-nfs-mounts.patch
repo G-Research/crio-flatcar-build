@@ -11,10 +11,10 @@ permissions.
 Co-authored-by: Isham Araia <ishamaraia@gmail.com>
 ---
 diff --git a/server/container_create_linux.go b/server/container_create_linux.go
-index 116e6b20e..b66509875 100644
+index 116e6b20e..53fee923b 100644
 --- a/server/container_create_linux.go
 +++ b/server/container_create_linux.go
-@@ -68,6 +68,13 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
+@@ -68,8 +68,15 @@ func makeAccessible(path string, uid, gid int, doChown bool) error {
  		}
  	}
  	for ; path != "/"; path = filepath.Dir(path) {
@@ -26,5 +26,8 @@ index 116e6b20e..b66509875 100644
 +			continue
 +		}
  		var st unix.Stat_t
- 		err := unix.Stat(path, &st)
+-		err := unix.Stat(path, &st)
++		err = unix.Stat(path, &st)
  		if err != nil {
+ 			if os.IsNotExist(err) {
+ 				return nil
